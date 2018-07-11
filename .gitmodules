@@ -1,0 +1,6 @@
+[submodule "bosh-deployment"]
+	path = bosh-deployment
+	url = https://github.com/cloudfoundry/bosh-deployment.git
+[submodule "kubo-deployment"]
+	path = kubo-deployment
+	url = https://github.com/cloudfoundry-incubator/kubo-deployment.git

@@ -1,0 +1,6 @@
+- type: replace
+  path: /resource_pools/name=vms/cloud_properties/spot_bid_price?
+  value: 0.0092
+- type: replace
+  path: /resource_pools/name=vms/cloud_properties/spot_ondemand_fallback?
+  value: true

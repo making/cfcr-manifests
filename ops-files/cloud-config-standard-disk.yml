@@ -1,0 +1,9 @@
+- type: replace
+  path: /vm_extensions?/-
+  value:
+    name: standard-disk
+    cloud_properties:
+      root_disk:
+        type: standard
+      ephemeral_disk:
+        type: standard

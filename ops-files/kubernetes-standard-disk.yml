@@ -1,0 +1,9 @@
+- type: replace
+  path: /instance_groups/name=master/vm_extensions?/-
+  value: standard-disk
+- type: replace
+  path: /instance_groups/name=worker/vm_extensions?/-
+  value: standard-disk
+- type: replace
+  path: /instance_groups/name=worker/vm_extensions?/-
+  value: 50GB_ephemeral_disk

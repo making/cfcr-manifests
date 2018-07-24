@@ -1,0 +1,10 @@
+- type: remove
+  path: /instance_groups/name=master/persistent_disk?
+- type: remove
+  path: /instance_groups/name=worker/persistent_disk?
+- type: replace
+  path: /instance_groups/name=master/persistent_disk_type?
+  value: '5120'
+- type: replace
+  path: /instance_groups/name=worker/persistent_disk_type?
+  value: '10240'

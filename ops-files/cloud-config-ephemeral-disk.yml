@@ -1,0 +1,43 @@
+- type: replace
+  path: /vm_extensions/name=1GB_ephemeral_disk?
+  value:
+    name: 1GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 1024
+- type: replace
+  path: /vm_extensions/name=5GB_ephemeral_disk?
+  value:
+    name: 5GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 5120
+- type: replace
+  path: /vm_extensions/name=10GB_ephemeral_disk?
+  value:
+    name: 10GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 10240
+- type: replace
+  path: /vm_extensions/name=50GB_ephemeral_disk?
+  value:
+    name: 50GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 51200
+- type: replace
+  path: /vm_extensions/name=100GB_ephemeral_disk?
+  value:
+    name: 100GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 102400
+- type: replace
+  path: /vm_extensions/name=500GB_ephemeral_disk?
+  value:
+    name: 500GB_ephemeral_disk
+    cloud_properties:
+      ephemeral_disk:
+        size: 512000
+

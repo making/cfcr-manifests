@@ -1,0 +1,7 @@
+- type: replace
+  path: /vm_extensions?/-
+  value:
+    name: ingress-lb
+    cloud_properties:
+      lb_target_groups:
+      - ((ingress_https_target_group))

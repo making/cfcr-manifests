@@ -1,0 +1,21 @@
+- type: replace
+  path: /disk_types?/-
+  value:
+    name: '1024'
+    disk_size: 1024
+    cloud_properties:
+      type: standard
+- type: replace
+  path: /disk_types?/-
+  value:
+    name: '5120'
+    disk_size: 5120
+    cloud_properties:
+      type: standard
+- type: replace
+  path: /disk_types?/-
+  value:
+    name: '10240'
+    disk_size: 10240
+    cloud_properties:
+      type: standard

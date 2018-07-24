@@ -1,0 +1,11 @@
+- type: replace
+  path: /resource_pools/name=vms/cloud_properties/ephemeral_disk
+  value: 
+    value: 20_000
+    type: standard
+- type: replace
+  path: /disk_pools/name=disks/cloud_properties/type?
+  value: standard
+- type: replace
+  path: /disk_pools/name=disks/disk_size
+  value: 20_000

@@ -1,0 +1,9 @@
+- type: replace
+  path: /vm_types/name=minimal/cloud_properties/instance_type
+  value: t2.micro
+- type: replace
+  path: /vm_types/name=small/cloud_properties/instance_type
+  value: t2.micro
+- type: replace
+  path: /vm_types/name=small-highmem/cloud_properties/instance_type
+  value: t2.medium

@@ -1,0 +1,7 @@
+- type: replace
+  path: /vm_extensions?/-
+  value:
+    name: master-lb
+    cloud_properties:
+      lb_target_groups:
+      - ((master_target_pool))

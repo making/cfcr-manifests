@@ -1,0 +1,45 @@
+- type: replace
+  path: /azs/name=z1/cloud_properties/availability_zone
+  value: ((az1_name))
+
+- type: replace
+  path: /azs/name=z2/cloud_properties/availability_zone
+  value: ((az2_name))
+
+- type: replace
+  path: /azs/name=z3/cloud_properties/availability_zone
+  value: ((az3_name))
+
+- type: replace
+  path: /networks/name=default
+  value:
+    name: default
+    subnets:
+    - az: z1
+      gateway: ((az1_gateway))
+      range: ((az1_range))
+      reserved:
+      - ((az1_gateway))/30
+      cloud_properties:
+        subnet: ((az1_subnet))
+      dns:
+      - ((dns_recursor_ip))
+    - az: z2
+      gateway: ((az2_gateway))
+      range: ((az2_range))
+      reserved:
+      - ((az2_gateway))/30
+      cloud_properties:
+        subnet: ((az2_subnet))
+      dns:
+      - ((dns_recursor_ip))
+    - az: z3
+      gateway: ((az3_gateway))
+      range: ((az3_range))
+      reserved:
+      - ((az3_gateway))/30
+      cloud_properties:
+        subnet: ((az3_subnet))
+      dns:
+      - ((dns_recursor_ip))
+    type: manual

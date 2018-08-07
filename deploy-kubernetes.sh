@@ -30,7 +30,7 @@ EOF) \
     -v syslog_address=${SYSLOG_ADDRESS} \
     -v syslog_port=${SYSLOG_PORT} \
     -v syslog_transport=tcp \
-    --var-file syslog_ca_cert=logstash.ca \
+    --var-file syslog_ca_cert=syslog.ca \
     -l <(cat <<EOF
 syslog_permitted_peer: "${SYSLOG_PERMITTED_PEER}"
 EOF) \

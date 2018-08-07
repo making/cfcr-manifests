@@ -7,4 +7,4 @@
   value: '5120'
 - type: replace
   path: /instance_groups/name=uaa-db/persistent_disk_type?
-  value: '5120'
+  value: '10240'

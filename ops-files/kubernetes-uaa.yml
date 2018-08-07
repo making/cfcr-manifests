@@ -81,7 +81,7 @@
             keys:
               key-1:
                 signingKey: "((uaa_jwt_signing_key.private_key))"
-        logging_level: INFO
+        logging_level: WARN
         scim:
           users:
           - name: admin

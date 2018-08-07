@@ -4,3 +4,6 @@
 - type: replace
   path: /instance_groups/name=worker/vm_extensions?/-
   value: spot-instance-t2.medium
+- type: replace
+  path: /instance_groups/name=uaa-db/vm_extensions?/-
+  value: spot-instance-t2.micro

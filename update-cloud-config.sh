@@ -29,3 +29,4 @@ bosh update-cloud-config kubo-deployment/configurations/aws/cloud-config.yml \
     -v region=${region} \
     -v master_target_pool=${prefix}-cfcr-api \
     -v ingress_https_target_group=${prefix}-cfcr-ingress-https \
+    -v uaa_target_group=${prefix}-cfcr-uaa \

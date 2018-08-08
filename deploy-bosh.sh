@@ -11,7 +11,6 @@ bosh create-env bosh-deployment/bosh.yml \
     -o kubo-deployment/configurations/generic/dns-addresses.yml \
     -o kubo-deployment/configurations/generic/bosh-admin-client.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/bosh/tags.yml \
-    -o prometheus-boshrelease/manifests/operators/bosh/add-bosh-exporter-uaa-clients.yml \
     -v director_name=bosh-aws \
     -v internal_cidr=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}') \
     -v internal_gw=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}' | sed 's|0/24|1|') \
@@ -25,4 +24,6 @@ bosh create-env bosh-deployment/bosh.yml \
     --var-file private_key=${HOME}/deployer.pem \
     -v subnet_id=$(echo ${private_subnet_ids} | awk -F ',' '{print $1}') \
     --vars-store=bosh-aws-creds.yml \
-    --state bosh-aws-state.json
+    --state bosh-aws-state.json \
+
+#    -o prometheus-boshrelease/manifests/operators/bosh/add-bosh-exporter-uaa-clients.yml \

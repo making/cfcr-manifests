@@ -1,0 +1,16 @@
+- type: remove
+  path: /vm_types/name=small/cloud_properties/iam_instance_profile
+- type: remove
+  path: /vm_types/name=small-highmem/cloud_properties/iam_instance_profile
+- type: replace
+  path: /vm_extensions/-
+  value:
+    name: cfcr-master
+    cloud_properties:
+      iam_instance_profile: demo-cfcr-master
+- type: replace
+  path: /vm_extensions/-
+  value:
+    name: cfcr-worker
+    cloud_properties:
+      iam_instance_profile: demo-cfcr-worker

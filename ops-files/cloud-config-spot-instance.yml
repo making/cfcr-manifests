@@ -9,6 +9,14 @@
 - type: replace
   path: /vm_extensions?/-
   value:
+    name: spot-instance-t2.small
+    cloud_properties:
+      spot_bid_price: 0.0092
+      spot_ondemand_fallback: true
+
+- type: replace
+  path: /vm_extensions?/-
+  value:
     name: spot-instance-t2.medium
     cloud_properties:
       spot_bid_price: 0.0183

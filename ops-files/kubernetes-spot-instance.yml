@@ -1,6 +1,6 @@
 - type: replace
   path: /instance_groups/name=master/vm_extensions?/-
-  value: spot-instance-t2.micro
+  value: spot-instance-t2.small
 - type: replace
   path: /instance_groups/name=worker/vm_extensions?/-
   value: spot-instance-t2.medium

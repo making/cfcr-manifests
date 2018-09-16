@@ -9,6 +9,7 @@ bosh update-cloud-config kubo-deployment/configurations/aws/cloud-config.yml \
     -o ops-files/cloud-config-disk-types.yml \
     -o ops-files/cloud-config-ephemeral-disk.yml \
     -o ops-files/cloud-config-ingress-lb.yml \
+    -o ops-files/cloud-config-instance-profile.yml \
     -v master_iam_instance_profile=${prefix}-cfcr-master \
     -v worker_iam_instance_profile=${prefix}-cfcr-worker \
     -v az1_name=$(echo ${availability_zones} | awk -F ',' '{print $1}') \

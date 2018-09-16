@@ -5,8 +5,10 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/lb.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml \
     -o kubo-deployment/manifests/ops-files/use-coredns.yml \
+    -o kubo-deployment/manifests/ops-files/enable-bbr.yml \
     -o ops-files/kubernetes-kubo-0.21.0.yml \
     -o ops-files/kubernetes-worker.yml \
+    -o ops-files/kubernetes-instance-profile.yml \
     -o ops-files/kubernetes-uaa.yml \
     -o ops-files/kubernetes-uaa-external-url.yml \
     -o ops-files/kubernetes-master-lb.yml \

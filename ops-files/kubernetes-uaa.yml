@@ -97,11 +97,12 @@
         clients:
           kubernetes:
             override: true
-            authorized-grant-types: password,refresh_token
+            authorized-grant-types: password,refresh_token,authorization_code
             scope: openid,roles
             authorities: uaa.none
             access-token-validity: 604800 # 7 day
             refresh-token-validity: 2592000 # 30 days
+            redirect-uri: http://localhost:8000
             secret: ""
         zones:
           internal:

@@ -1,0 +1,289 @@
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: sinks.apps.pivotal.io
+spec:
+  group: apps.pivotal.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: sinks
+    singular: sink
+    kind: Sink
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required:
+          - type
+          - port
+          - host
+          properties:
+            port:
+              type: integer
+              minimum: 0
+              maximum: 65535
+            type:
+              type: string
+              enum:
+              - syslog
+            host:
+              type: string
+              pattern: '^([a-zA-Z0-9-\.]+)$|^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})$|^([a-fA-F0-9\:]+)$'
+            enable_tls:
+              type: boolean
+            insecure_skip_verify:
+              type: boolean
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pks-system
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: namespace-sink-modifier
+rules:
+  # The sink-controller needs to patch the configmap for fluent-bit
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "patch"] # TODO: Do we need watch?
+  # The sink-controller needs to be able to delete the fluent-bit pods
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["deletecollection"]
+  # The sink-controller needs to be able to watch sinks
+- apiGroups: ["apps.pivotal.io"]
+  resources: ["sinks"]
+  verbs: ["get", "list", "watch"]
+# This rule is for kubernetes-metadata-filter
+- apiGroups:
+  - ""
+  - "apps"
+  - "batch"
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: service-account-namespace-sink-modifier
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: pks-system
+roleRef:
+  kind: ClusterRole
+  name: namespace-sink-modifier
+  apiGroup: rbac.authorization.k8s.io
+---
+# https://raw.githubusercontent.com/fluent/fluent-bit-kubernetes-logging/master/output/elasticsearch/fluent-bit-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit
+  namespace: pks-system
+  labels:
+    k8s-app: fluent-bit
+data:
+  # Configuration files: server, input, filters and output
+  # ======================================================
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2020
+
+    @INCLUDE inputs.conf
+    @INCLUDE filters.conf
+    @INCLUDE outputs.conf
+
+  inputs.conf: |
+    @INCLUDE input-kubernetes.conf
+
+  filters.conf: |
+    @INCLUDE filter-kubernetes.conf
+
+  outputs.conf: |
+    @INCLUDE output-null.conf
+
+  input-kubernetes.conf: |
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        Parser            docker
+        DB                /var/log/flb_kube.db
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           On
+        K8S-Logging.Parser  On
+
+  output-file.conf: |
+    [OUTPUT]
+        Name file
+        Match *
+        Path /tmp/output.txt
+
+  output-null.conf: |
+    [OUTPUT]
+        Name null
+
+  output-syslog.conf: |
+    [OUTPUT]
+        Name syslog
+        Match *
+        Addr example.com:12345
+
+  parsers.conf: |
+    [PARSER]
+        Name   apache
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   apache2
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   apache_error
+        Format regex
+        Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
+
+    [PARSER]
+        Name   nginx
+        Format regex
+        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As   escaped    log
+
+    [PARSER]
+        Name        syslog
+        Format      regex
+        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key    time
+        Time_Format %b %d %H:%M:%S
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    k8s-app: logging-agent
+    kubernetes.io/cluster-service: "true"
+    version: v1
+  name: fluent-bit
+  namespace: pks-system
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: logging-agent
+        kubernetes.io/cluster-service: "true"
+        version: v1
+    spec:
+      containers:
+      - image: oratos/fluent-bit-out-syslog:v0.2
+        imagePullPolicy: Always
+        name: fluent-bit
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /fluent-bit/etc
+          name: fluent-bit-config
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /var/vcap/store
+          name: varvcapstore
+          readOnly: true
+        - mountPath: /var/vcap/data
+          name: varvcapdata
+          readOnly: true
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - hostPath:
+          path: /var/log
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker/containers
+        name: varlibdockercontainers
+      - hostPath:
+          path: /var/vcap/store/
+        name: varvcapstore
+      - hostPath:
+          path: /var/vcap/data/
+        name: varvcapdata
+      - configMap:
+          name: fluent-bit
+        name: fluent-bit-config
+  updateStrategy:
+    type: RollingUpdate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sink-controller
+  namespace: pks-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sink-controller
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: oratos/sink-controller:v0.4
+        imagePullPolicy: Always
+        name: sink-controller
+
+---

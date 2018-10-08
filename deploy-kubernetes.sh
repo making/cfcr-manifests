@@ -6,7 +6,6 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml \
     -o kubo-deployment/manifests/ops-files/use-coredns.yml \
     -o kubo-deployment/manifests/ops-files/enable-bbr.yml \
-    -o ops-files/kubernetes-kubo-0.21.0.yml \
     -o ops-files/kubernetes-worker.yml \
     -o ops-files/kubernetes-instance-profile.yml \
     -o ops-files/kubernetes-uaa.yml \
@@ -16,8 +15,6 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-standard-disk.yml \
     -o ops-files/kubernetes-persistent-disk-type.yml \
     -o ops-files/kubernetes-ingress-lb.yml \
-    -o ops-files/kubernetes-add-syslog.yml \
-    -o ops-files/kubernetes-add-syslog-tls.yml \
     -o ops-files/kubernetes-log-level.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_cluster_tag=${kubernetes_cluster_tag} \

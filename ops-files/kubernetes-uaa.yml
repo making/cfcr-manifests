@@ -56,6 +56,9 @@
           passphrase: ((uaa_default_encryption_passphrase))
       login:
         self_service_links_enabled: false
+        prompt:
+          username:
+            text: Username
         saml:
           serviceProviderCertificate: "((uaa_service_provider_ssl.certificate))"
           serviceProviderKey: "((uaa_service_provider_ssl.private_key))"

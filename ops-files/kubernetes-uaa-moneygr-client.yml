@@ -1,0 +1,51 @@
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/user?/authorities?
+  value:
+  - openid
+  - scim.me
+  - cloud_controller.read
+  - cloud_controller.write
+  - cloud_controller_service_permissions.read
+  - password.write
+  - uaa.user
+  - approvals.me
+  - oauth.approvals
+  - notification_preferences.read
+  - notification_preferences.write
+  - profile
+  - roles
+  - user_attributes
+  - uaa.offline_token
+  - scim.read
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/clients/moneygr?
+  value:
+    access-token-validity: 604800
+    refresh-token-validity: 1209600
+    authorized-grant-types: authorization_code,refresh_token,password
+    override: true
+    redirect-uri: https://moneygr.ik.am/login/oauth2/code/uaa
+    scope: openid,email,profile,roles,scim.read
+    secret: ((moneygr_uaa_client_secret))
+    app-launch-url: https://moneygr.ik.am
+    show-on-homepage: true
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/clients/moneygr_dev?
+  value:
+    access-token-validity: 604800
+    refresh-token-validity: 1209600
+    authorized-grant-types: authorization_code,refresh_token,password
+    override: true
+    redirect-uri: http://localhost:8080/login/oauth2/code/uaa
+    scope: openid,email,profile,roles,scim.read
+    secret: ((moneygr_uaa_client_secret))
+    app-launch-url: http://localhost:8080
+    show-on-homepage: true
+
+- type: replace
+  path: /variables/-
+  value:
+    name: moneygr_uaa_client_secret
+    type: password

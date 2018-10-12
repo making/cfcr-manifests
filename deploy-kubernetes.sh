@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# openssl s_client -connect uaa.bosh.tokyo:443 -showcerts
+
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
@@ -16,6 +19,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-persistent-disk-type.yml \
     -o ops-files/kubernetes-ingress-lb.yml \
     -o ops-files/kubernetes-log-level.yml \
+    -o ops-files/kubernetes-uaa-moneygr-client.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_cluster_tag=${kubernetes_cluster_tag} \
     -v kubernetes_master_host=${master_lb_ip_address} \

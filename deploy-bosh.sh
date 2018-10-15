@@ -8,9 +8,10 @@ bosh create-env bosh-deployment/bosh.yml \
     -o ops-files/director-size-aws.yml \
     -o ops-files/director-spot-instance.yml \
     -o ops-files/director-disk-size.yml \
-    -o kubo-deployment/configurations/generic/dns-addresses.yml \
-    -o kubo-deployment/configurations/generic/bosh-admin-client.yml \
-    -o kubo-deployment/manifests/ops-files/iaas/aws/bosh/tags.yml \
+    -o ops-files/director-node-exporter.yml \
+    -o ops-files/old-kubo/dns-addresses.yml \
+    -o ops-files/old-kubo/bosh-admin-client.yml \
+    -o ops-files/old-kubo/tags.yml \
     -v director_name=bosh-aws \
     -v internal_cidr=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}') \
     -v internal_gw=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}' | sed 's|0/24|1|') \

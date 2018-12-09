@@ -1,5 +1,5 @@
 #!/bin/bash
-bosh update-cloud-config kubo-deployment/configurations/aws/cloud-config.yml \
+bosh update-cloud-config cloud-config.yml \
     -o ops-files/cloud-config-rename-vm-types.yml \
     -o ops-files/cloud-config-small-vm-types.yml \
     -o ops-files/cloud-config-master-lb.yml \
@@ -8,7 +8,7 @@ bosh update-cloud-config kubo-deployment/configurations/aws/cloud-config.yml \
     -o ops-files/cloud-config-standard-disk.yml \
     -o ops-files/cloud-config-disk-types.yml \
     -o ops-files/cloud-config-ephemeral-disk.yml \
-    -o ops-files/cloud-config-ingress-lb.yml \
+    -o ops-files/cloud-config-worker-lb.yml \
     -o ops-files/cloud-config-instance-profile.yml \
     -v master_iam_instance_profile=${prefix}-cfcr-master \
     -v worker_iam_instance_profile=${prefix}-cfcr-worker \
@@ -30,4 +30,5 @@ bosh update-cloud-config kubo-deployment/configurations/aws/cloud-config.yml \
     -v region=${region} \
     -v master_target_pool=${prefix}-cfcr-api \
     -v ingress_https_target_group=${prefix}-cfcr-ingress-https \
+    -v scgw_https_target_group=${prefix}-cfcr-scgw-https \
     -v uaa_target_group=${prefix}-cfcr-uaa \

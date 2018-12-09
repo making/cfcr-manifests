@@ -1,0 +1,15 @@
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/name=postgres/properties/databases/databases/-
+  value: 
+    name: blog
+    citext: true
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/name=postgres/properties/databases/roles/-
+  value:
+    name: categolj
+    password: ((categolj_password))
+- type: replace
+  path: /variables/-
+  value:
+    name: categolj_password
+    type: password

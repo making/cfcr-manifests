@@ -2,6 +2,47 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  name: clustersinks.apps.pivotal.io
+spec:
+  group: apps.pivotal.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Cluster
+  names:
+    plural: clustersinks
+    singular: clustersink
+    kind: ClusterSink
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required:
+          - type
+          - port
+          - host
+          properties:
+            port:
+              type: integer
+              minimum: 0
+              maximum: 65535
+            type:
+              type: string
+              enum:
+              - syslog
+            host:
+              type: string
+              pattern: '^([a-zA-Z0-9-\.]+)$|^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})$|^([a-fA-F0-9\:]+)$'
+            enable_tls:
+              type: boolean
+            insecure_skip_verify:
+              type: boolean
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
   name: sinks.apps.pivotal.io
 spec:
   group: apps.pivotal.io
@@ -58,9 +99,9 @@ rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
   verbs: ["deletecollection"]
-  # The sink-controller needs to be able to watch sinks
+  # The sink-controller needs to be able to watch sinks and clustersinks
 - apiGroups: ["apps.pivotal.io"]
-  resources: ["sinks"]
+  resources: ["sinks", "clustersinks"]
   verbs: ["get", "list", "watch"]
 # This rule is for kubernetes-metadata-filter
 - apiGroups:
@@ -150,7 +191,7 @@ data:
     [OUTPUT]
         Name syslog
         Match *
-        Addr example.com:12345
+        Sinks [{\"addr\":\"example.com:12345\"}]
 
   parsers.conf: |
     [PARSER]
@@ -220,7 +261,7 @@ spec:
         version: v1
     spec:
       containers:
-      - image: oratos/fluent-bit-out-syslog:v0.2
+      - image: oratos/fluent-bit-out-syslog:v0.9
         imagePullPolicy: Always
         name: fluent-bit
         resources:
@@ -282,8 +323,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/sink-controller:v0.4
+        image: oratos/sink-controller:v0.10
         imagePullPolicy: Always
         name: sink-controller
-
----

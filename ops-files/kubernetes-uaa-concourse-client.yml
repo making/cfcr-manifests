@@ -1,0 +1,16 @@
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/clients/concourse?
+  value:
+    access-token-validity: 604800
+    refresh-token-validity: 1209600
+    authorized-grant-types: authorization_code,refresh_token,password
+    override: true
+    redirect-uri: https://concourse.ik.am/sky/issuer/callback
+    scope: openid,email,profile,roles
+    secret: ((concourse_uaa_client_secret))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: concourse_uaa_client_secret
+    type: password

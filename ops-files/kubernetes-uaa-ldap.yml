@@ -1,3 +1,4 @@
+# Install Open LDAP
 - type: replace
   path: /releases/-
   value:
@@ -75,4 +76,63 @@
       alternative_names: 
       - "*.sslip.io"
       - "*.ap-northeast-1.elb.amazonaws.com"
-      - "*.japaneast.cloudapp.azure.com"  
+      - "*.japaneast.cloudapp.azure.com"
+
+# Configure UAA
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/enabled?
+  value: true
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/url?
+  value: "ldaps://10-0-8-4.sslip.io:636"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/userDN?
+  value: "cn=admin,dc=ik,dc=am"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/userPassword?
+  value: ((ldap_olc_root_pw))
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/searchBase?
+  value: "ou=people,dc=ik,dc=am"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/searchFilter?
+  value: "cn={0}"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/sslCertificate?
+  value: ((ldap_tls.ca))
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/groups?/searchBase?
+  value: "ou=groups,dc=ik,dc=am" 
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/groups?/profile_type?
+  value: "groups-as-scopes"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/groups?/groupRoleAttribute?
+  value: "cn"
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/attributeMappings?
+  value:
+    given_name: givenName
+    family_name: sn
+    phone_number: telephoneNumber
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa?/ldap?/externalGroupsWhitelist
+  value:
+  - administrators
+  - users
+
+# Configure CFCR
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-groups-claim?
+  value: roles

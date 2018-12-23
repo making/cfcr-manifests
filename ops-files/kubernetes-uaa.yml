@@ -124,13 +124,28 @@
           tag: admin
 
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc?
-  value:
-    issuer-url: https://((kubernetes_uaa_host)):9443/oauth/token
-    client-id: kubernetes
-    username-claim: user_name
-    username-prefix: "-" # noUsernamePrefix
-    ca: ((uaa_ssl.ca))
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc?/ca?
+  value: ((uaa_ssl.ca))
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-ca-file?
+  value: /var/vcap/jobs/kube-apiserver/config/oidc-ca.pem
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-client-id?
+  value: kubernetes
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-issuer-url?
+  value: https://((kubernetes_uaa_host)):9443/oauth/token
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-username-claim?
+  value: user_name
+
+- type: replace
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-username-prefix?
+  value: "-" # noUsernamePrefix
 
 - type: replace
   path: /variables/-

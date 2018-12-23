@@ -2,6 +2,6 @@
   path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/url
   value: ((uaa_external_url))
 - type: replace
-  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/issuer-url
+  path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/k8s-args?/oidc-issuer-url?
   value: ((uaa_external_url))/oauth/token
 

@@ -13,6 +13,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-instance-profile.yml \
     -o ops-files/kubernetes-uaa.yml \
     -o ops-files/kubernetes-uaa-external-url.yml \
+    -o ops-files/kubernetes-uaa-ldap.yml \
     -o ops-files/kubernetes-master-lb.yml \
     -o ops-files/kubernetes-spot-instance.yml \
     -o ops-files/kubernetes-standard-disk.yml \
@@ -33,6 +34,12 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
   value: ((oidc_ca))
 EOF) \
     --var-file oidc_ca=acm.ca \
+    -v ldap_olc_suffix="dc=ik,dc=am" \
+    -v ldap_olc_root_dn="cn=admin,dc=ik,dc=am" \
+    --var-file add_ldap_config_ldif=<(echo "") \
+    --var-file add_ldap_user_ldif=ldif/init.ldif \
+    --var-file modify_ldap_config_ldif=<(echo "") \
+    --var-file modify_ldap_user_ldif=<(echo "") \
     -v syslog_address=${SYSLOG_ADDRESS} \
     -v syslog_port=${SYSLOG_PORT} \
     -v syslog_transport=tcp \

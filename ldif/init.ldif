@@ -1,0 +1,17 @@
+dn: dc=ik,dc=am
+objectClass: organization
+objectClass: dcObject
+o: IK.AM
+dc: ik
+
+dn: cn=admin,dc=ik,dc=am
+objectClass: organizationalRole
+cn: admin
+
+dn: ou=people,dc=ik,dc=am
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=ik,dc=am
+objectClass: organizationalUnit
+ou: groups

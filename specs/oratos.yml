@@ -39,6 +39,28 @@ spec:
               type: boolean
             insecure_skip_verify:
               type: boolean
+  additionalPrinterColumns:
+    - name: Type
+      JSONPath: .spec.type
+      type: string
+    - name: Host
+      JSONPath: .spec.host
+      type: string
+    - name: Port
+      JSONPath: .spec.port
+      type: integer
+    - name: TLS
+      JSONPath: .spec.enable_tls
+      type: boolean
+    - name: Insecure
+      JSONPath: .spec.insecure_skip_verify
+      type: boolean
+      description: |
+        Accept any certificate presented by the server and any host name in
+        that certificate.
+    - JSONPath: .metadata.creationTimestamp
+      name: Age
+      type: date
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -80,29 +102,102 @@ spec:
               type: boolean
             insecure_skip_verify:
               type: boolean
+  additionalPrinterColumns:
+    - name: Type
+      JSONPath: .spec.type
+      type: string
+    - name: Host
+      JSONPath: .spec.host
+      type: string
+    - name: Port
+      JSONPath: .spec.port
+      type: integer
+    - name: TLS
+      JSONPath: .spec.enable_tls
+      type: boolean
+    - name: Insecure
+      JSONPath: .spec.insecure_skip_verify
+      type: boolean
+      description: |
+        Accept any certificate presented by the server and any host name in
+        that certificate.
+    - JSONPath: .metadata.creationTimestamp
+      name: Age
+      type: date
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: pks-system
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-generator
+  namespace: pks-system
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "create"]
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - cert-generator
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-generator
+  namespace: pks-system
+subjects:
+- kind: ServiceAccount
+  name: cert-generator
+  namespace: pks-system
+roleRef:
+  kind: Role
+  name: cert-generator
+  apiGroup: rbac.authorization.k8s.io
+---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: namespace-sink-modifier
+  name: event-controller
 rules:
-  # The sink-controller needs to patch the configmap for fluent-bit
-- apiGroups: [""] # "" indicates the core API group
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch", "patch"] # TODO: Do we need watch?
-  # The sink-controller needs to be able to delete the fluent-bit pods
-- apiGroups: [""] # "" indicates the core API group
-  resources: ["pods"]
-  verbs: ["deletecollection"]
-  # The sink-controller needs to be able to watch sinks and clustersinks
-- apiGroups: ["apps.pivotal.io"]
-  resources: ["sinks", "clustersinks"]
+# The event-controller needs to be able to watch events
+- apiGroups: [""]
+  resources: ["events"]
   verbs: ["get", "list", "watch"]
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - event-controller
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: event-controller
+subjects:
+- kind: ServiceAccount
+  name: event-controller
+  namespace: pks-system
+roleRef:
+  kind: ClusterRole
+  name: event-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluent-bit
+rules:
 # This rule is for kubernetes-metadata-filter
 - apiGroups:
   - ""
@@ -110,21 +205,172 @@ rules:
   - "batch"
   resources: ["*"]
   verbs: ["get", "list", "watch"]
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - fluent-bit
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: service-account-namespace-sink-modifier
+  name: fluent-bit
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: fluent-bit
   namespace: pks-system
 roleRef:
   kind: ClusterRole
-  name: namespace-sink-modifier
+  name: fluent-bit
   apiGroup: rbac.authorization.k8s.io
 ---
-# https://raw.githubusercontent.com/fluent/fluent-bit-kubernetes-logging/master/output/elasticsearch/fluent-bit-configmap.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: sink-controller
+rules:
+# The sink-controller needs to patch the configmap for fluent-bit
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "patch"] # TODO: Do we need watch?
+# The sink-controller needs to be able to delete the fluent-bit pods
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["deletecollection"]
+# The sink-controller needs to be able to watch sinks and clustersinks
+- apiGroups: ["pksapi.io"]
+  resources: ["sinks", "clustersinks"]
+  verbs: ["get", "list", "watch"]
+# This api group is for backwards compatability
+- apiGroups: ["apps.pivotal.io"]
+  resources: ["sinks", "clustersinks"]
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - sink-controller
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: sink-controller
+subjects:
+- kind: ServiceAccount
+  name: sink-controller
+  namespace: pks-system
+roleRef:
+  kind: ClusterRole
+  name: sink-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-generator
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: event-controller
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluent-bit
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sink-controller
+  namespace: pks-system
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: cert-generator
+spec:
+  volumes:
+  - secret
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: event-controller
+spec:
+  volumes:
+  - emptyDir
+  - secret
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: fluent-bit
+spec:
+  volumes:
+  - hostPath
+  - configMap
+  - emptyDir
+  - secret
+  allowedHostPaths:
+  - pathPrefix: /var/log
+    readOnly: false
+  - pathPrefix: /var/lib/docker/containers
+    readOnly: true
+  - pathPrefix: /var/vcap/store
+    readOnly: true
+  - pathPrefix: /var/vcap/data
+    readOnly: true
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: sink-controller
+spec:
+  volumes:
+  - secret
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -151,12 +397,19 @@ data:
 
   inputs.conf: |
     @INCLUDE input-kubernetes.conf
+    @INCLUDE input-forward.conf
 
   filters.conf: |
     @INCLUDE filter-kubernetes.conf
 
   outputs.conf: |
     @INCLUDE output-null.conf
+
+  input-forward.conf: |
+    [INPUT]
+        Name forward
+        Port 24225
+        Listen localhost
 
   input-kubernetes.conf: |
     [INPUT]
@@ -195,32 +448,6 @@ data:
 
   parsers.conf: |
     [PARSER]
-        Name   apache
-        Format regex
-        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name   apache2
-        Format regex
-        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name   apache_error
-        Format regex
-        Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
-
-    [PARSER]
-        Name   nginx
-        Format regex
-        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
         Name   json
         Format json
         Time_Key time
@@ -235,13 +462,46 @@ data:
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
         Decode_Field_As   escaped    log
-
-    [PARSER]
-        Name        syslog
-        Format      regex
-        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
-        Time_Key    time
-        Time_Format %b %d %H:%M:%S
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluent-bit
+  namespace: pks-system
+spec:
+  selector:
+    k8s-app: logging-agent
+  ports:
+    - protocol: TCP
+      port: 24224
+      targetPort: forward-plugin
+  type: ClusterIP
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    job: cert-generator
+  name: cert-generator
+  namespace: pks-system
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        job: cert-generator
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: oratos/cert-generator:v0.11
+        imagePullPolicy: IfNotPresent
+        name: cert-generator
+      restartPolicy: Never
+      serviceAccountName: cert-generator
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -261,20 +521,18 @@ spec:
         version: v1
     spec:
       containers:
-      - image: oratos/fluent-bit-out-syslog:v0.9
-        imagePullPolicy: Always
+      - image: oratos/fluent-bit-out-syslog:v0.10
+        imagePullPolicy: IfNotPresent
         name: fluent-bit
         resources:
           limits:
-            memory: 100Mi
-          requests:
-            cpu: 100m
             memory: 100Mi
         volumeMounts:
         - mountPath: /fluent-bit/etc
           name: fluent-bit-config
         - mountPath: /var/log
           name: varlog
+          readOnly: false
         - mountPath: /var/lib/docker/containers
           name: varlibdockercontainers
           readOnly: true
@@ -284,7 +542,48 @@ spec:
         - mountPath: /var/vcap/data
           name: varvcapdata
           readOnly: true
-      serviceAccountName: default
+      - command:
+        - ghostunnel
+        - server
+        - --listen
+        - :24224
+        - --target
+        - localhost:24225
+        - --keystore
+        - /keystore/keystore.pem
+        - --cacert
+        - /pks-ca/tls.crt
+        - --allow-dns-san
+        - event-controller
+        image: oratos/ghostunnel:v0.11
+        imagePullPolicy: IfNotPresent
+        name: ghostunnel
+        ports:
+        - containerPort: 24224
+          name: forward-plugin
+        volumeMounts:
+        - mountPath: /keystore
+          name: keystore
+          readOnly: true
+        - mountPath: /pks-ca/tls.crt
+          name: pks-ca
+          readOnly: true
+          subPath: tls.crt
+      initContainers:
+      - command:
+        - /bin/bash
+        - -c
+        - cat /fluent-bit-certs/* > /keystore/keystore.pem
+        image: oratos/fluent-bit-out-syslog:v0.10
+        imagePullPolicy: IfNotPresent
+        name: concat-keystore
+        volumeMounts:
+        - mountPath: /fluent-bit-certs
+          name: fluent-bit-certs
+          readOnly: true
+        - mountPath: /keystore
+          name: keystore
+      serviceAccountName: fluent-bit
       terminationGracePeriodSeconds: 10
       volumes:
       - hostPath:
@@ -302,8 +601,84 @@ spec:
       - configMap:
           name: fluent-bit
         name: fluent-bit-config
+      - emptyDir: {}
+        name: keystore
+      - name: fluent-bit-certs
+        secret:
+          secretName: fluent-bit
+      - name: pks-ca
+        secret:
+          secretName: pks-ca
   updateStrategy:
     type: RollingUpdate
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: event-controller
+  namespace: pks-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: event-controller
+    spec:
+      containers:
+      - env:
+        - name: FORWARDER_HOST
+          value: localhost
+        image: oratos/event-controller:v0.11
+        imagePullPolicy: IfNotPresent
+        name: event-controller
+      - command:
+        - ghostunnel
+        - client
+        - --listen
+        - localhost:24224
+        - --target
+        - fluent-bit.pks-system.svc.cluster.local:24224
+        - --override-server-name
+        - fluent-bit
+        - --keystore
+        - /keystore/keystore.pem
+        - --cacert
+        - /pks-ca/tls.crt
+        image: oratos/ghostunnel:v0.11
+        imagePullPolicy: IfNotPresent
+        name: ghostunnel
+        volumeMounts:
+        - mountPath: /keystore
+          name: keystore
+          readOnly: true
+        - mountPath: /pks-ca/tls.crt
+          name: pks-ca
+          readOnly: true
+          subPath: tls.crt
+      initContainers:
+      - command:
+        - /bin/bash
+        - -c
+        - cat /event-controller-certs/* > /keystore/keystore.pem
+        image: oratos/fluent-bit-out-syslog:v0.10
+        imagePullPolicy: IfNotPresent
+        name: concat-keystore
+        volumeMounts:
+        - mountPath: /event-controller-certs
+          name: event-controller-certs
+          readOnly: true
+        - mountPath: /keystore
+          name: keystore
+      serviceAccountName: event-controller
+      volumes:
+      - emptyDir: {}
+        name: keystore
+      - name: event-controller-certs
+        secret:
+          secretName: event-controller
+      - name: pks-ca
+        secret:
+          secretName: pks-ca
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -323,6 +698,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/sink-controller:v0.10
-        imagePullPolicy: Always
+        image: oratos/sink-controller:v0.11
+        imagePullPolicy: IfNotPresent
         name: sink-controller
+      serviceAccountName: sink-controller

@@ -1,3 +1,9 @@
 *creds.yml
 *state.json
 ingress
+terraform.tfvars
+terraform.tfstate*
+.terraform
+plan
+*.pem
+ssh-bastion.sh

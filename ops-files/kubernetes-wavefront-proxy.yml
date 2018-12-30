@@ -1,0 +1,38 @@
+- type: replace
+  path: /releases/-
+  value:
+    name: wavefront-proxy
+    version: 0.8.0
+- type: replace
+  path: /instance_groups/name=worker/jobs/-
+  value:
+    name: wavefront-proxy-images
+    release: wavefront-proxy
+
+- type: replace
+  path: /instance_groups/name=apply-addons/jobs/-
+  value:
+    name: wavefront-proxy-errand
+    release: wavefront-proxy
+    properties:
+      wavefront-api-url: ((wavefront-api-url))
+      wavefront-token: ((wavefront-token))
+
+- type: replace
+  path: /instance_groups/name=apply-addons/jobs/-
+  value:
+    name: wavefront-alert-creation
+    release: wavefront-proxy
+    properties:
+      wavefront-api-url: ((wavefront-api-url))
+      wavefront-token: ((wavefront-token))
+      wavefront-alert-targets: ((wavefront-alert-targets))
+
+- type: replace
+  path: /instance_groups/name=apply-addons/jobs/-
+  value:
+    name: wavefront-alert-deletion
+    release: wavefront-proxy
+    properties:
+      wavefront-api-url: ((wavefront-api-url))
+      wavefront-token: ((wavefront-token))

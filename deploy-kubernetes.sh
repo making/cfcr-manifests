@@ -18,6 +18,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-spot-instance.yml \
     -o ops-files/kubernetes-standard-disk.yml \
     -o ops-files/kubernetes-persistent-disk-type.yml \
+    -o ops-files/kubernetes-wavefront-proxy.yml \
     -o ops-files/kubernetes-worker-lb.yml \
     -o ops-files/kubernetes-log-level.yml \
     -o ops-files/kubernetes-uaa-moneygr-client.yml \
@@ -47,4 +48,6 @@ EOF) \
     -l <(cat <<EOF
 syslog_permitted_peer: "${SYSLOG_PERMITTED_PEER}"
 EOF) \
+    -v wavefront-api-url=https://surf.wavefront.com/api/ \
+    -v wavefront-alert-targets='tmaki@pivotal.io' \
     --no-redact

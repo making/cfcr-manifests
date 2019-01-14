@@ -26,5 +26,5 @@ bosh create-env bosh-deployment/bosh.yml \
     -v subnet_id=$(echo ${private_subnet_ids} | awk -F ',' '{print $1}') \
     --vars-store=bosh-aws-creds.yml \
     --state bosh-aws-state.json \
-
+    $@
 #    -o prometheus-boshrelease/manifests/operators/bosh/add-bosh-exporter-uaa-clients.yml \

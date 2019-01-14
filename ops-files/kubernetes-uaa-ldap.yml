@@ -3,9 +3,9 @@
   path: /releases/-
   value:
     name: openldap
-    version: 0.8.0
-    url: https://github.com/making/openldap-boshrelease/releases/download/0.8.0/openldap-boshrelease-0.8.0.tgz
-    sha1: 47cb2534bef014201143069d35e03ab53af50326
+    version: 0.10.0
+    url: https://github.com/making/openldap-boshrelease/releases/download/0.10.0/openldap-boshrelease-0.10.0.tgz
+    sha1: 5cfc3a46c6545adda476477e8374b87adccdee96
 
 - type: replace
   path: /instance_groups/name=uaa-db/jobs/-

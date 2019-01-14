@@ -18,7 +18,6 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-spot-instance.yml \
     -o ops-files/kubernetes-standard-disk.yml \
     -o ops-files/kubernetes-persistent-disk-type.yml \
-    -o ops-files/kubernetes-wavefront-proxy.yml \
     -o ops-files/kubernetes-worker-lb.yml \
     -o ops-files/kubernetes-log-level.yml \
     -o ops-files/kubernetes-uaa-moneygr-client.yml \
@@ -41,13 +40,10 @@ EOF) \
     --var-file add_ldap_user_ldif=ldif/init.ldif \
     --var-file modify_ldap_config_ldif=<(echo "") \
     --var-file modify_ldap_user_ldif=<(echo "") \
-    -v syslog_address=${SYSLOG_ADDRESS} \
-    -v syslog_port=${SYSLOG_PORT} \
-    -v syslog_transport=tcp \
-    --var-file syslog_ca_cert=syslog.ca \
-    -l <(cat <<EOF
-syslog_permitted_peer: "${SYSLOG_PERMITTED_PEER}"
-EOF) \
     -v wavefront-api-url=https://surf.wavefront.com/api/ \
     -v wavefront-alert-targets='tmaki@pivotal.io' \
-    --no-redact
+    --no-redact \
+    $@
+
+#    -o ops-files/kubernetes-wavefront-proxy.yml \
+

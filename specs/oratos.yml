@@ -482,7 +482,7 @@ kind: Job
 metadata:
   labels:
     job: cert-generator
-  name: cert-generator
+  name: cert-generator-v0.11
   namespace: pks-system
 spec:
   backoffLimit: 0
@@ -497,7 +497,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/cert-generator:v0.11
+        image: oratos/cert-generator:v0.12
         imagePullPolicy: IfNotPresent
         name: cert-generator
       restartPolicy: Never
@@ -521,7 +521,7 @@ spec:
         version: v1
     spec:
       containers:
-      - image: oratos/fluent-bit-out-syslog:v0.10
+      - image: oratos/fluent-bit-out-syslog:v0.11
         imagePullPolicy: IfNotPresent
         name: fluent-bit
         resources:
@@ -555,7 +555,9 @@ spec:
         - /pks-ca/tls.crt
         - --allow-dns-san
         - event-controller
-        image: oratos/ghostunnel:v0.11
+        - --cipher-suites
+        - AES
+        image: oratos/ghostunnel:v0.12
         imagePullPolicy: IfNotPresent
         name: ghostunnel
         ports:
@@ -574,7 +576,7 @@ spec:
         - /bin/bash
         - -c
         - cat /fluent-bit-certs/* > /keystore/keystore.pem
-        image: oratos/fluent-bit-out-syslog:v0.10
+        image: oratos/fluent-bit-out-syslog:v0.11
         imagePullPolicy: IfNotPresent
         name: concat-keystore
         volumeMounts:
@@ -628,7 +630,7 @@ spec:
       - env:
         - name: FORWARDER_HOST
           value: localhost
-        image: oratos/event-controller:v0.11
+        image: oratos/event-controller:v0.12
         imagePullPolicy: IfNotPresent
         name: event-controller
       - command:
@@ -644,7 +646,9 @@ spec:
         - /keystore/keystore.pem
         - --cacert
         - /pks-ca/tls.crt
-        image: oratos/ghostunnel:v0.11
+        - --cipher-suites
+        - AES
+        image: oratos/ghostunnel:v0.12
         imagePullPolicy: IfNotPresent
         name: ghostunnel
         volumeMounts:
@@ -660,7 +664,7 @@ spec:
         - /bin/bash
         - -c
         - cat /event-controller-certs/* > /keystore/keystore.pem
-        image: oratos/fluent-bit-out-syslog:v0.10
+        image: oratos/fluent-bit-out-syslog:v0.11
         imagePullPolicy: IfNotPresent
         name: concat-keystore
         volumeMounts:
@@ -698,7 +702,9 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/sink-controller:v0.11
+        image: oratos/sink-controller:v0.12
         imagePullPolicy: IfNotPresent
         name: sink-controller
       serviceAccountName: sink-controller
+
+---

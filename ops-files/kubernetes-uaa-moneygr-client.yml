@@ -13,6 +13,7 @@
 - type: replace
   path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/clients/moneygr?
   value:
+    name: 家計簿
     access-token-validity: 604800
     refresh-token-validity: 1209600
     authorized-grant-types: authorization_code,refresh_token,password
@@ -34,7 +35,7 @@
     scope: openid,email,profile,roles,scim.read
     secret: ((moneygr_uaa_client_secret))
     app-launch-url: http://localhost:8080
-    show-on-homepage: true
+    show-on-homepage: false
 
 - type: replace
   path: /variables/-

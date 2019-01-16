@@ -21,8 +21,11 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-worker-lb.yml \
     -o ops-files/kubernetes-log-level.yml \
     -o ops-files/kubernetes-uaa-moneygr-client.yml \
+    -o ops-files/kubernetes-uaa-simple-ldap-ui-client.yml \
     -o ops-files/kubernetes-node-exporter.yml \
     -o ops-files/kubernetes-postgres-blog-db.yml \
+    -o ops-files/kubernetes-service-catalog.yml \
+    -o ops-files/kubernetes-remove-z3.yml \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_cluster_tag=${kubernetes_cluster_tag} \
     -v kubernetes_master_host=${master_lb_ip_address} \

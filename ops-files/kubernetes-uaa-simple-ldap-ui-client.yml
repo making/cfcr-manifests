@@ -1,0 +1,19 @@
+- type: replace
+  path: /instance_groups/name=master/jobs/name=uaa/properties/uaa/clients/ldap-simple-ui?
+  value:
+    name: ユーザー情報変更
+    access-token-validity: 604800
+    refresh-token-validity: 1209600
+    authorized-grant-types: authorization_code,refresh_token
+    override: true
+    redirect-uri: https://ldap.k8s.bosh.tokyo/login/oauth2/code/uaa
+    scope: openid,email,profile,roles
+    secret: ((ldap_simple_ui_uaa_client_secret))
+    app-launch-url: https://ldap.k8s.bosh.tokyo
+    show-on-homepage: true
+
+- type: replace
+  path: /variables/-
+  value:
+    name: ldap_simple_ui_uaa_client_secret
+    type: password

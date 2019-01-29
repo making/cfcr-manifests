@@ -7,7 +7,6 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/lb.yml \
     -o kubo-deployment/manifests/ops-files/iaas/aws/cloud-provider.yml \
-    -o kubo-deployment/manifests/ops-files/use-coredns.yml \
     -o kubo-deployment/manifests/ops-files/enable-bbr.yml \
     -o ops-files/kubernetes-worker.yml \
     -o ops-files/kubernetes-instance-profile.yml \

@@ -5,7 +5,7 @@
     refresh-token-validity: 1209600
     authorized-grant-types: authorization_code,refresh_token,password
     override: true
-    redirect-uri: https://concourse.ik.am/sky/issuer/callback
+    redirect-uri: https://concourse.ik.am:14161/sky/issuer/callback
     scope: openid,email,profile,roles
     secret: ((concourse_uaa_client_secret))
 

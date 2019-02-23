@@ -1,0 +1,7 @@
+- type: replace
+  path: /releases/name=docker
+  value:
+    name: docker
+    version: 35.0.0
+    url: https://github.com/cloudfoundry-incubator/docker-boshrelease/releases/download/v35.0.0/docker-35.0.0.tgz
+    sha1: a658b53188b21c97c62f7a99211d8245290621df

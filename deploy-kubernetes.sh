@@ -36,6 +36,19 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
   path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/ca
   value: ((oidc_ca))
 EOF) \
+    -o <(cat <<EOF
+- type: replace
+  path: /releases/-
+  value:
+$(bosh int prometheus-boshrelease/manifests/prometheus.yml --path /releases/name=prometheus | sed 's/^/    /g')
+EOF) \
+    -o ops-files/kubernetes-prometheus.yml \
+    -v metrics_environment=bosh-aws \
+    -v bosh_url=https://${BOSH_ENVIRONMENT}:25555 \
+    -v uaa_bosh_exporter_client_secret=$(bosh int bosh-aws-creds.yml --path /uaa_bosh_exporter_client_secret) \
+    --var-file bosh_ca_cert=<(cat <<EOF
+${BOSH_CA_CERT}
+EOF) \
     --var-file oidc_ca=acm.ca \
     -v ldap_olc_suffix="dc=ik,dc=am" \
     -v ldap_olc_root_dn="cn=admin,dc=ik,dc=am" \

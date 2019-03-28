@@ -12,6 +12,8 @@ bosh create-env bosh-deployment/bosh.yml \
     -o ops-files/old-kubo/dns-addresses.yml \
     -o ops-files/old-kubo/bosh-admin-client.yml \
     -o ops-files/old-kubo/tags.yml \
+    -o prometheus-boshrelease/manifests/operators/bosh/add-bosh-exporter-uaa-clients.yml \
+    -o prometheus-boshrelease/manifests/operators/bosh/add-credhub-exporter-uaa-clients.yml \
     -v director_name=bosh-aws \
     -v internal_cidr=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}') \
     -v internal_gw=$(echo ${private_subnet_cidr_blocks} | awk -F ',' '{print $1}' | sed 's|0/24|1|') \

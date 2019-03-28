@@ -1,0 +1,24 @@
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: bosh_exporter
+    release: prometheus
+    properties:
+      bosh_exporter:
+        bosh:
+          url: "((bosh_url))"
+          uaa:
+            client_id: bosh_exporter
+            client_secret: "((uaa_bosh_exporter_client_secret))"
+          ca_cert: "((bosh_ca_cert))"
+        metrics:
+          environment: "((metrics_environment))"
+
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: postgres_exporter
+    release: prometheus
+    properties:
+      postgres_exporter:
+        datasource_name: postgresql://uaa:((uaa_database_password))@127.0.0.1:5432/?sslmode=disable

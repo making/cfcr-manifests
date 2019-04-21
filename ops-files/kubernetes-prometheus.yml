@@ -22,3 +22,19 @@
     properties:
       postgres_exporter:
         datasource_name: postgresql://uaa:((uaa_database_password))@127.0.0.1:5432/?sslmode=disable
+
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: blackbox_exporter
+    release: prometheus
+    properties:
+      blackbox_exporter:
+        config:
+          modules:
+            http:
+              prober: http
+              timeout: 5s
+              http:
+                tls_config:
+                  insecure_skip_verify: true

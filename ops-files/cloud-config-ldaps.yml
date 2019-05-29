@@ -1,0 +1,10 @@
+- type: replace
+  path: /vm_extensions?/-
+  value:
+    name: ldap-lb
+    cloud_properties:
+      lb_target_groups:
+      - demo-bosh-ldaps
+      security_groups:
+      - demo-bosh-ldaps
+      - demo-bosh-vms

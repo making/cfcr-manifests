@@ -10,6 +10,7 @@ bosh update-cloud-config cloud-config.yml \
     -o ops-files/cloud-config-ephemeral-disk.yml \
     -o ops-files/cloud-config-worker-lb.yml \
     -o ops-files/cloud-config-instance-profile.yml \
+    -o ops-files/cloud-config-ldaps.yml \
     -v master_iam_instance_profile=${prefix}-cfcr-master \
     -v worker_iam_instance_profile=${prefix}-cfcr-worker \
     -v az1_name=$(echo ${availability_zones} | awk -F ',' '{print $1}') \

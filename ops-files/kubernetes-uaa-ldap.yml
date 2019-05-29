@@ -45,6 +45,10 @@
         userEntriesLdif: ((modify_ldap_user_ldif))
 
 - type: replace
+  path: /instance_groups/name=uaa-db/vm_extensions?/-
+  value: ldap-lb
+
+- type: replace
   path: /variables/-
   value:
     name: ldap_olc_root_pw

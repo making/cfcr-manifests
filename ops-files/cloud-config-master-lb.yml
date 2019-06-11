@@ -4,5 +4,8 @@
     name: master-lb
     cloud_properties:
       lb_target_groups:
-      - ((master_target_pool))
-      - ((uaa_target_group))
+      - demo-bosh-master
+      - demo-cfcr-uaa
+      security_groups:
+      - demo-bosh-master
+      - demo-bosh-vms

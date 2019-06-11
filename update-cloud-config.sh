@@ -30,6 +30,4 @@ bosh update-cloud-config cloud-config.yml \
     -v secret_access_key=${AWS_SECRET_ACCESS_KEY} \
     -v region=${region} \
     -v master_target_pool=${prefix}-cfcr-api \
-    -v ingress_https_target_group=${prefix}-cfcr-ingress-https \
-    -v scgw_https_target_group=${prefix}-cfcr-scgw-https \
     -v uaa_target_group=${prefix}-cfcr-uaa \

@@ -4,5 +4,9 @@
     name: worker-lb
     cloud_properties:
       lb_target_groups:
-      - ((scgw_https_target_group))
-      - ((ingress_https_target_group))
+      - demo-cfcr-scgw-https
+      - demo-cfcr-ingress-https
+      - demo-prometheus-proxy
+      security_groups:
+      - demo-prometheus-proxy
+      - demo-bosh-vms

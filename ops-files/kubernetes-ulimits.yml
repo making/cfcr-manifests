@@ -1,0 +1,19 @@
+- type: replace
+  path: /releases/name=os-conf?
+  value:
+    name: os-conf
+    version: 21.0.0
+    url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=21.0.0
+    sha1: 7579a96515b265c6d828924bf4f5fae115798199
+
+- type: replace
+  path: /instance_groups/name=worker/jobs/-
+  value:
+    name: limits_not_recommended
+    release: os-conf
+    properties: 
+      limits_conf: |
+        vcap  soft  nofile  1048576
+        vcap  hard  nofile  1048576
+        root  soft  nofile  1048576
+        root  hard  nofile  1048576     

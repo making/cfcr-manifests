@@ -27,6 +27,7 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-service-catalog.yml \
     -o ops-files/kubernetes-remove-z3.yml \
     -o ops-files/kubernetes-vault.yml \
+    -o ops-files/kubernetes-ulimits.yml \
     --var-file vault_config=vault/config.hcl \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_cluster_tag=${kubernetes_cluster_tag} \

@@ -1,0 +1,35 @@
+- type: replace
+  path: /releases/-
+  value:
+    name: zipkin
+    version: 0.7.0
+    url: https://github.com/making/zipkin-boshrelease/releases/download/0.7.0/zipkin-boshrelease-0.7.0.tgz
+    sha1: a9738320bcad38ba96f2ba70898d3aab0496e2fe
+
+- type: replace
+  path: /releases/-
+  value:
+    name: openjdk
+    sha1: 43979a6595282fcf4ac6269135968acc0d96d297
+    url: https://github.com/making/openjdk-boshrelease/releases/download/8.0.4/openjdk-boshrelease-8.0.4.tgz
+    version: 8.0.4
+
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: bpm
+    release: bpm
+
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: java
+    release: openjdk
+
+- type: replace
+  path: /instance_groups/name=uaa-db/jobs/-
+  value:
+    name: zipkin
+    release: zipkin
+    properties:
+      server_port: 9411

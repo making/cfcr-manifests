@@ -41,6 +41,10 @@ resource "aws_security_group" "vms_security_group" {
     from_port   = 0
     to_port     = 0
   }
+
+  lifecycle {
+    ignore_changes = ["tags.%", "tags.kubernetes", "tags.KubernetesCluster"]
+  }
 }
 
 resource "aws_security_group_rule" "outbound" {

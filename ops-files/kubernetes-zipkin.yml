@@ -32,4 +32,11 @@
     name: zipkin
     release: zipkin
     properties:
-      server_port: 9411
+      zipkin:
+        server_port: 9411
+        storage_type: elasticsearch
+      elasticsearch:
+        hosts:
+        # credhub set -t value -n /bosh-aws/cfcr/elasticsearch_host -v http://example.com:9200
+        - ((elasticsearch_host))
+ 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # openssl s_client -connect uaa.bosh.tokyo:443 -showcerts
-
+STEMCELL_VERSION=$(bosh int kubo-deployment/manifests/cfcr.yml --path /stemcells/0/version)
 bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o kubo-deployment/manifests/ops-files/misc/single-master.yml \
     -o kubo-deployment/manifests/ops-files/addons-spec.yml \
@@ -39,6 +39,16 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
   path: /instance_groups/name=master/jobs/name=kube-apiserver/properties/oidc/ca
   value: ((oidc_ca))
 EOF) \
+    -o <(for x in kubo cfcr-etcd docker bpm;do
+cat <<EOF
+- type: replace
+  path: /releases/name=${x}/stemcell?
+  value:
+    os: ubuntu-xenial
+    version: "456.27"
+EOF
+done
+) \
     -o <(cat <<EOF
 - type: replace
   path: /releases/-

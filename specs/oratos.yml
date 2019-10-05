@@ -1,342 +1,314 @@
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: clustersinks.apps.pivotal.io
-spec:
-  group: apps.pivotal.io
-  version: v1beta1
-  versions:
-    - name: v1beta1
-      served: true
-      storage: true
-  scope: Cluster
-  names:
-    plural: clustersinks
-    singular: clustersink
-    kind: ClusterSink
-  validation:
-    openAPIV3Schema:
-      properties:
-        spec:
-          required:
-          - type
-          - port
-          - host
-          properties:
-            port:
-              type: integer
-              minimum: 0
-              maximum: 65535
-            type:
-              type: string
-              enum:
-              - syslog
-            host:
-              type: string
-              pattern: '^([a-zA-Z0-9-\.]+)$|^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})$|^([a-fA-F0-9\:]+)$'
-            enable_tls:
-              type: boolean
-            insecure_skip_verify:
-              type: boolean
-  additionalPrinterColumns:
-    - name: Type
-      JSONPath: .spec.type
-      type: string
-    - name: Host
-      JSONPath: .spec.host
-      type: string
-    - name: Port
-      JSONPath: .spec.port
-      type: integer
-    - name: TLS
-      JSONPath: .spec.enable_tls
-      type: boolean
-    - name: Insecure
-      JSONPath: .spec.insecure_skip_verify
-      type: boolean
-      description: |
-        Accept any certificate presented by the server and any host name in
-        that certificate.
-    - JSONPath: .metadata.creationTimestamp
-      name: Age
-      type: date
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: sinks.apps.pivotal.io
-spec:
-  group: apps.pivotal.io
-  version: v1beta1
-  versions:
-    - name: v1beta1
-      served: true
-      storage: true
-  scope: Namespaced
-  names:
-    plural: sinks
-    singular: sink
-    kind: Sink
-  validation:
-    openAPIV3Schema:
-      properties:
-        spec:
-          required:
-          - type
-          - port
-          - host
-          properties:
-            port:
-              type: integer
-              minimum: 0
-              maximum: 65535
-            type:
-              type: string
-              enum:
-              - syslog
-            host:
-              type: string
-              pattern: '^([a-zA-Z0-9-\.]+)$|^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})$|^([a-fA-F0-9\:]+)$'
-            enable_tls:
-              type: boolean
-            insecure_skip_verify:
-              type: boolean
-  additionalPrinterColumns:
-    - name: Type
-      JSONPath: .spec.type
-      type: string
-    - name: Host
-      JSONPath: .spec.host
-      type: string
-    - name: Port
-      JSONPath: .spec.port
-      type: integer
-    - name: TLS
-      JSONPath: .spec.enable_tls
-      type: boolean
-    - name: Insecure
-      JSONPath: .spec.insecure_skip_verify
-      type: boolean
-      description: |
-        Accept any certificate presented by the server and any host name in
-        that certificate.
-    - JSONPath: .metadata.creationTimestamp
-      name: Age
-      type: date
----
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    nodeExporter: "true"
   name: pks-system
 ---
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
 metadata:
-  name: cert-generator
-  namespace: pks-system
-rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "create"]
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-  resourceNames:
-  - cert-generator
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: clusterlogsinks.pksapi.io
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.type
+    name: Type
+    type: string
+  - JSONPath: .spec.url
+    name: URL
+    type: string
+  - JSONPath: .spec.host
+    name: Host
+    type: string
+  - JSONPath: .spec.port
+    name: Port
+    type: integer
+  - JSONPath: .spec.enable_tls
+    name: TLS
+    type: boolean
+  - JSONPath: .spec.insecure_skip_verify
+    description: |
+      Accept any certificate presented by the server and any host name in
+      that certificate.
+    name: Insecure
+    type: boolean
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
+  group: pksapi.io
+  names:
+    kind: ClusterLogSink
+    plural: clusterlogsinks
+    singular: clusterlogsink
+  scope: Cluster
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            enable_tls:
+              type: boolean
+            host:
+              type: string
+            insecure_skip_verify:
+              type: boolean
+            port:
+              type: integer
+            type:
+              enum:
+              - syslog
+              - webhook
+              type: string
+          required:
+          - type
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
 ---
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
 metadata:
-  name: cert-generator
-  namespace: pks-system
-subjects:
-- kind: ServiceAccount
-  name: cert-generator
-  namespace: pks-system
-roleRef:
-  kind: Role
-  name: cert-generator
-  apiGroup: rbac.authorization.k8s.io
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: clustermetricsinks.pksapi.io
+spec:
+  group: pksapi.io
+  names:
+    kind: ClusterMetricSink
+    plural: clustermetricsinks
+    singular: clustermetricsink
+  scope: Cluster
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required:
+          - outputs
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
 ---
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
 metadata:
-  name: event-controller
-rules:
-# The event-controller needs to be able to watch events
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["get", "list", "watch"]
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-  resourceNames:
-  - event-controller
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: logsinks.pksapi.io
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.type
+    name: Type
+    type: string
+  - JSONPath: .spec.host
+    name: Host
+    type: string
+  - JSONPath: .spec.url
+    name: URL
+    type: string
+  - JSONPath: .spec.port
+    name: Port
+    type: integer
+  - JSONPath: .spec.enable_tls
+    name: TLS
+    type: boolean
+  - JSONPath: .spec.insecure_skip_verify
+    description: |
+      Accept any certificate presented by the server and any host name in
+      that certificate.
+    name: Insecure
+    type: boolean
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
+  group: pksapi.io
+  names:
+    kind: LogSink
+    plural: logsinks
+    singular: logsink
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            enable_tls:
+              type: boolean
+            host:
+              type: string
+            insecure_skip_verify:
+              type: boolean
+            port:
+              type: integer
+            type:
+              enum:
+              - webhook
+              - syslog
+              type: string
+          required:
+          - type
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
 ---
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
 metadata:
-  name: event-controller
-subjects:
-- kind: ServiceAccount
-  name: event-controller
-  namespace: pks-system
-roleRef:
-  kind: ClusterRole
-  name: event-controller
-  apiGroup: rbac.authorization.k8s.io
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: fluent-bit
-rules:
-# This rule is for kubernetes-metadata-filter
-- apiGroups:
-  - ""
-  - "apps"
-  - "batch"
-  resources: ["*"]
-  verbs: ["get", "list", "watch"]
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-  resourceNames:
-  - fluent-bit
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: fluent-bit
-subjects:
-- kind: ServiceAccount
-  name: fluent-bit
-  namespace: pks-system
-roleRef:
-  kind: ClusterRole
-  name: fluent-bit
-  apiGroup: rbac.authorization.k8s.io
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: sink-controller
-rules:
-# The sink-controller needs to patch the configmap for fluent-bit
-- apiGroups: [""] # "" indicates the core API group
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch", "patch"] # TODO: Do we need watch?
-# The sink-controller needs to be able to delete the fluent-bit pods
-- apiGroups: [""] # "" indicates the core API group
-  resources: ["pods"]
-  verbs: ["deletecollection"]
-# The sink-controller needs to be able to watch sinks and clustersinks
-- apiGroups: ["pksapi.io"]
-  resources: ["sinks", "clustersinks"]
-  verbs: ["get", "list", "watch"]
-# This api group is for backwards compatability
-- apiGroups: ["apps.pivotal.io"]
-  resources: ["sinks", "clustersinks"]
-  verbs: ["get", "list", "watch"]
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-  resourceNames:
-  - sink-controller
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: sink-controller
-subjects:
-- kind: ServiceAccount
-  name: sink-controller
-  namespace: pks-system
-roleRef:
-  kind: ClusterRole
-  name: sink-controller
-  apiGroup: rbac.authorization.k8s.io
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: metricsinks.pksapi.io
+spec:
+  group: pksapi.io
+  names:
+    kind: MetricSink
+    plural: metricsinks
+    singular: metricsink
+  scope: Namespaced
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
   name: cert-generator
   namespace: pks-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: event-controller
   namespace: pks-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: fluent-bit
   namespace: pks-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: metric-controller
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: sink-controller
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
+  namespace: pks-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
   namespace: pks-system
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
   name: cert-generator
 spec:
-  volumes:
-  - secret
-  runAsUser:
+  fsGroup:
     rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
   seLinux:
     rule: RunAsAny
   supplementalGroups:
     rule: RunAsAny
-  fsGroup:
-    rule: RunAsAny
+  volumes:
+  - secret
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: event-controller
 spec:
-  volumes:
-  - emptyDir
-  - secret
-  runAsUser:
+  fsGroup:
     rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
   seLinux:
     rule: RunAsAny
   supplementalGroups:
     rule: RunAsAny
-  fsGroup:
-    rule: RunAsAny
+  volumes:
+  - emptyDir
+  - secret
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: fluent-bit
 spec:
-  volumes:
-  - hostPath
-  - configMap
-  - emptyDir
-  - secret
   allowedHostPaths:
   - pathPrefix: /var/log
     readOnly: false
@@ -346,45 +318,591 @@ spec:
     readOnly: true
   - pathPrefix: /var/vcap/data
     readOnly: true
+  fsGroup:
+    rule: RunAsAny
   runAsUser:
     rule: RunAsAny
   seLinux:
     rule: RunAsAny
   supplementalGroups:
     rule: RunAsAny
-  fsGroup:
-    rule: RunAsAny
+  volumes:
+  - hostPath
+  - configMap
+  - emptyDir
+  - secret
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: sink-controller
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: metric-controller
 spec:
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
   volumes:
   - secret
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  labels:
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
+spec:
+  allowedHostPaths:
+  - pathPrefix: /proc
+    readOnly: true
+  - pathPrefix: /sys
+    readOnly: true
+  fsGroup:
+    rule: RunAsAny
+  hostPID: true
   runAsUser:
     rule: RunAsAny
   seLinux:
     rule: RunAsAny
   supplementalGroups:
     rule: RunAsAny
+  volumes:
+  - hostPath
+  - secret
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: sink-controller
+spec:
   fsGroup:
     rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - secret
 ---
-apiVersion: v1
-kind: ConfigMap
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
 metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
+spec:
+  fsGroup:
+    rule: RunAsAny
+  hostNetwork: true
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - configMap
+  - secret
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+spec:
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - secret
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: cert-generator
+  namespace: pks-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+- apiGroups:
+  - policy
+  resourceNames:
+  - cert-generator
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+  namespace: pks-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: event-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - policy
+  resourceNames:
+  - event-controller
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: fluent-bit
+rules:
+- apiGroups:
+  - ""
+  - apps
+  - batch
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pksapi.io
+  resources:
+  - logsinks/status
+  - clusterlogsinks/status
+  verbs:
+  - get
+  - patch
+- apiGroups:
+  - policy
+  resourceNames:
+  - fluent-bit
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: metric-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - deletecollection
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - pksapi.io
+  resources:
+  - clustermetricsinks
+  - metricsinks
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+- apiGroups:
+  - extensions
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+- apiGroups:
+  - policy
+  resourceNames:
+  - metric-controller
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
+rules:
+- apiGroups:
+  - policy
+  resourceNames:
+  - node-exporter
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: sink-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - deletecollection
+- apiGroups:
+  - pksapi.io
+  resources:
+  - logsinks
+  - clusterlogsinks
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - policy
+  resourceNames:
+  - sink-controller
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
+rules:
+- apiGroups:
+  - policy
+  resourceNames:
+  - telegraf
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+- apiGroups:
+  - ""
+  resources:
+  - nodes/stats
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+rules:
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - get
+  - patch
+- apiGroups:
+  - policy
+  resourceNames:
+  - validator
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: cert-generator
+  namespace: pks-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cert-generator
+subjects:
+- kind: ServiceAccount
+  name: cert-generator
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+  namespace: pks-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: validator
+subjects:
+- kind: ServiceAccount
+  name: validator
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: event-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: event-controller
+subjects:
+- kind: ServiceAccount
+  name: event-controller
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: fluent-bit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluent-bit
+subjects:
+- kind: ServiceAccount
   name: fluent-bit
   namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
   labels:
-    k8s-app: fluent-bit
+    metrics: "true"
+    safeToDelete: "true"
+  name: metric-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metric-controller
+subjects:
+- kind: ServiceAccount
+  name: metric-controller
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-exporter
+subjects:
+- kind: ServiceAccount
+  name: node-exporter
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
+  name: sink-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: sink-controller
+subjects:
+- kind: ServiceAccount
+  name: sink-controller
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telegraf
+subjects:
+- kind: ServiceAccount
+  name: telegraf
+  namespace: pks-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: validator
+subjects:
+- kind: ServiceAccount
+  name: validator
+  namespace: pks-system
+---
+apiVersion: v1
 data:
-  # Configuration files: server, input, filters and output
-  # ======================================================
+  cluster-name-filter.conf: ""
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           On
+        K8S-Logging.Parser  On
+  filters.conf: |
+    @INCLUDE filter-kubernetes.conf
+    @INCLUDE cluster-name-filter.conf
   fluent-bit.conf: |
     [SERVICE]
         Flush         1
-        Log_Level     info
+        Log_Level     warning
         Daemon        off
         Parsers_File  parsers.conf
         HTTP_Server   On
@@ -394,23 +912,11 @@ data:
     @INCLUDE inputs.conf
     @INCLUDE filters.conf
     @INCLUDE outputs.conf
-
-  inputs.conf: |
-    @INCLUDE input-kubernetes.conf
-    @INCLUDE input-forward.conf
-
-  filters.conf: |
-    @INCLUDE filter-kubernetes.conf
-
-  outputs.conf: |
-    @INCLUDE output-null.conf
-
   input-forward.conf: |
     [INPUT]
         Name forward
         Port 24225
         Listen localhost
-
   input-kubernetes.conf: |
     [INPUT]
         Name              tail
@@ -421,31 +927,19 @@ data:
         Mem_Buf_Limit     5MB
         Skip_Long_Lines   On
         Refresh_Interval  10
-
-  filter-kubernetes.conf: |
-    [FILTER]
-        Name                kubernetes
-        Match               kube.*
-        Kube_URL            https://kubernetes.default.svc.cluster.local:443
-        Merge_Log           On
-        K8S-Logging.Parser  On
-
+  inputs.conf: |
+    @INCLUDE input-kubernetes.conf
+    @INCLUDE input-forward.conf
   output-file.conf: |
     [OUTPUT]
         Name file
         Match *
         Path /tmp/output.txt
-
   output-null.conf: |
     [OUTPUT]
         Name null
-
-  output-syslog.conf: |
-    [OUTPUT]
-        Name syslog
-        Match *
-        Sinks [{\"addr\":\"example.com:12345\"}]
-
+  outputs.conf: |
+    @INCLUDE output-null.conf
   parsers.conf: |
     [PARSER]
         Name   json
@@ -462,34 +956,223 @@ data:
         # Command      |  Decoder | Field | Optional Action
         # =============|==================|=================
         Decode_Field_As   escaped    log
+kind: ConfigMap
+metadata:
+  labels:
+    app: fluent-bit
+    logs: "true"
+    safeToDelete: "true"
+  name: fluent-bit
+  namespace: pks-system
+---
+apiVersion: v1
+data:
+  cluster-metric-sinks.conf: |
+    [inputs]
+      [[inputs.cpu]]
+    [outputs]
+      [[outputs.discard]]
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 1000
+      metric_buffer_limit = 10000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      debug = false
+      quiet = false
+      logfile = ""
+      hostname = ""
+      omit_hostname = false
+kind: ConfigMap
+metadata:
+  labels:
+    app: telegraf
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
+  namespace: pks-system
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    logs: "true"
+    safeToDelete: "true"
   name: fluent-bit
   namespace: pks-system
 spec:
-  selector:
-    k8s-app: logging-agent
   ports:
-    - protocol: TCP
-      port: 24224
-      targetPort: forward-plugin
+  - port: 24224
+    protocol: TCP
+    targetPort: forward-plugin
+  selector:
+    app: fluent-bit
   type: ClusterIP
 ---
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Service
 metadata:
   labels:
-    job: cert-generator
-  name: cert-generator-v0.11
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
   namespace: pks-system
 spec:
-  backoffLimit: 0
+  ports:
+  - port: 10536
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: node-exporter
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+  namespace: pks-system
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: validator-port
+  selector:
+    app: validator
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: event-controller
+    logs: "true"
+    safeToDelete: "true"
+  name: event-controller
+  namespace: pks-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-controller
   template:
     metadata:
       labels:
-        job: cert-generator
+        app: event-controller
+    spec:
+      containers:
+      - env:
+        - name: FORWARDER_HOST
+          value: localhost
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/event-controller:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: event-controller
+      - command:
+        - ghostunnel
+        - client
+        - --listen
+        - localhost:24224
+        - --target
+        - fluent-bit.pks-system.svc.cluster.local:24224
+        - --keystore
+        - /keystore/keystore.pem
+        - --cacert
+        - /pks-ca/tls.crt
+        - --cipher-suites
+        - AES
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/ghostunnel:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: ghostunnel
+        volumeMounts:
+        - mountPath: /keystore
+          name: keystore
+          readOnly: true
+        - mountPath: /pks-ca/tls.crt
+          name: pks-ca
+          readOnly: true
+          subPath: tls.crt
+      initContainers:
+      - command:
+        - /bin/bash
+        - -c
+        - cat /event-controller-certs/* > /keystore/keystore.pem
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/cert-generator:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: concat-keystore
+        volumeMounts:
+        - mountPath: /event-controller-certs
+          name: event-controller-certs
+          readOnly: true
+        - mountPath: /keystore
+          name: keystore
+      serviceAccountName: event-controller
+      volumes:
+      - emptyDir: {}
+        name: keystore
+      - name: event-controller-certs
+        secret:
+          secretName: event-controller
+      - name: pks-ca
+        secret:
+          secretName: pks-ca
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: metric-controller
+    metrics: "true"
+    safeToDelete: "true"
+  name: metric-controller
+  namespace: pks-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metric-controller
+  template:
+    metadata:
+      labels:
+        app: metric-controller
+    spec:
+      containers:
+      - env:
+        - name: USE_INSECURE_KUBERNETES_PORT
+          value: "false"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/metric-controller:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: metric-controller
+      serviceAccountName: metric-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sink-controller
+    logs: "true"
+    safeToDelete: "true"
+  name: sink-controller
+  namespace: pks-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sink-controller
+  template:
+    metadata:
+      labels:
+        app: sink-controller
     spec:
       containers:
       - env:
@@ -497,31 +1180,110 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/cert-generator:v0.12
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/sink-controller:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
         imagePullPolicy: IfNotPresent
-        name: cert-generator
-      restartPolicy: Never
-      serviceAccountName: cert-generator
+        name: sink-controller
+      serviceAccountName: sink-controller
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: validator
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: validator
+  namespace: pks-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validator
+  template:
+    metadata:
+      labels:
+        app: validator
+    spec:
+      containers:
+      - env:
+        - name: HTTP_ADDR
+          value: :9000
+        - name: VALIDATOR_CERT
+          value: /etc/validator-certs/tls.crt
+        - name: VALIDATOR_KEY
+          value: /etc/validator-certs/tls.key
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/validator:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: validator
+        ports:
+        - containerPort: 9000
+          name: validator-port
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: validator-port
+            scheme: HTTPS
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - mountPath: /etc/validator-certs/
+          name: validator-certs
+          readOnly: true
+      initContainers:
+      - command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          ca_cert=$(kubectl get secrets "$CA_SECRET" -o json | jq '.data."tls.crt"' --raw-output)
+
+          kubectl patch \
+            validatingwebhookconfiguration "$WEBHOOK_CONFIG" \
+            --type=json \
+            -p "[
+                  {\"op\": \"add\", \"path\": \"/webhooks/0/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                  {\"op\": \"add\", \"path\": \"/webhooks/1/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                ]"
+        env:
+        - name: CA_SECRET
+          value: pks-ca
+        - name: WEBHOOK_CONFIG
+          value: validator.pksapi.io
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/cert-generator:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: patch-ca
+      serviceAccountName: validator
+      volumes:
+      - name: validator-certs
+        secret:
+          secretName: validator
+---
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
-    k8s-app: logging-agent
+    app: fluent-bit
     kubernetes.io/cluster-service: "true"
+    logs: "true"
+    safeToDelete: "true"
     version: v1
   name: fluent-bit
   namespace: pks-system
 spec:
+  selector:
+    matchLabels:
+      app: fluent-bit
+      version: v1
   template:
     metadata:
       labels:
-        k8s-app: logging-agent
+        app: fluent-bit
         kubernetes.io/cluster-service: "true"
         version: v1
     spec:
       containers:
-      - image: oratos/fluent-bit-out-syslog:v0.11
+      - image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/fluent-bit-out-syslog:c48e2598f8c2911f092ba0306a4998d8fe7190c2
         imagePullPolicy: IfNotPresent
         name: fluent-bit
         resources:
@@ -553,11 +1315,11 @@ spec:
         - /keystore/keystore.pem
         - --cacert
         - /pks-ca/tls.crt
-        - --allow-dns-san
+        - --allow-cn
         - event-controller
         - --cipher-suites
         - AES
-        image: oratos/ghostunnel:v0.12
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/ghostunnel:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
         imagePullPolicy: IfNotPresent
         name: ghostunnel
         ports:
@@ -576,7 +1338,7 @@ spec:
         - /bin/bash
         - -c
         - cat /fluent-bit-certs/* > /keystore/keystore.pem
-        image: oratos/fluent-bit-out-syslog:v0.11
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/fluent-bit-out-syslog:c48e2598f8c2911f092ba0306a4998d8fe7190c2
         imagePullPolicy: IfNotPresent
         name: concat-keystore
         volumeMounts:
@@ -585,6 +1347,8 @@ spec:
           readOnly: true
         - mountPath: /keystore
           name: keystore
+      securityContext:
+        runAsUser: 0
       serviceAccountName: fluent-bit
       terminationGracePeriodSeconds: 10
       volumes:
@@ -614,87 +1378,115 @@ spec:
   updateStrategy:
     type: RollingUpdate
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
-  name: event-controller
+  labels:
+    app: node-exporter
+    nodeExporter: "true"
+    safeToDelete: "true"
+  name: node-exporter
   namespace: pks-system
 spec:
-  replicas: 1
+  selector:
+    matchLabels:
+      app: node-exporter
   template:
     metadata:
       labels:
-        app: event-controller
+        app: node-exporter
     spec:
       containers:
-      - env:
-        - name: FORWARDER_HOST
-          value: localhost
-        image: oratos/event-controller:v0.12
+      - args:
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/node-exporter:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
         imagePullPolicy: IfNotPresent
-        name: event-controller
-      - command:
-        - ghostunnel
-        - client
-        - --listen
-        - localhost:24224
-        - --target
-        - fluent-bit.pks-system.svc.cluster.local:24224
-        - --override-server-name
-        - fluent-bit
-        - --keystore
-        - /keystore/keystore.pem
-        - --cacert
-        - /pks-ca/tls.crt
-        - --cipher-suites
-        - AES
-        image: oratos/ghostunnel:v0.12
-        imagePullPolicy: IfNotPresent
-        name: ghostunnel
+        name: prometheus-node-exporter
+        ports:
+        - containerPort: 9100
+          name: metrics
+        resources:
+          limits:
+            cpu: 10m
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 50Mi
         volumeMounts:
-        - mountPath: /keystore
-          name: keystore
+        - mountPath: /host/proc
+          name: proc
           readOnly: true
-        - mountPath: /pks-ca/tls.crt
-          name: pks-ca
+        - mountPath: /host/sys
+          name: sys
           readOnly: true
-          subPath: tls.crt
-      initContainers:
-      - command:
-        - /bin/bash
-        - -c
-        - cat /event-controller-certs/* > /keystore/keystore.pem
-        image: oratos/fluent-bit-out-syslog:v0.11
-        imagePullPolicy: IfNotPresent
-        name: concat-keystore
-        volumeMounts:
-        - mountPath: /event-controller-certs
-          name: event-controller-certs
-          readOnly: true
-        - mountPath: /keystore
-          name: keystore
-      serviceAccountName: event-controller
+      hostPID: true
+      serviceAccountName: node-exporter
       volumes:
-      - emptyDir: {}
-        name: keystore
-      - name: event-controller-certs
-        secret:
-          secretName: event-controller
-      - name: pks-ca
-        secret:
-          secretName: pks-ca
+      - hostPath:
+          path: /proc
+        name: proc
+      - hostPath:
+          path: /sys
+        name: sys
+  updateStrategy:
+    type: RollingUpdate
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
-  name: sink-controller
+  labels:
+    app: telegraf
+    metrics: "true"
+    safeToDelete: "true"
+  name: telegraf
   namespace: pks-system
 spec:
-  replicas: 1
+  selector:
+    matchLabels:
+      app: telegraf
   template:
     metadata:
       labels:
-        app: sink-controller
+        app: telegraf
+    spec:
+      containers:
+      - command:
+        - telegraf
+        - --config-directory
+        - /etc/telegraf
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/telegraf:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+        imagePullPolicy: IfNotPresent
+        name: telegraf
+        volumeMounts:
+        - mountPath: /etc/telegraf
+          name: telegraf-config
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      serviceAccountName: telegraf
+      volumes:
+      - configMap:
+          name: telegraf
+        name: telegraf-config
+  updateStrategy:
+    type: RollingUpdate
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    job: cert-generator
+    logs: "true"
+    metrics: "true"
+    safeToDelete: "true"
+  name: cert-generator-dea87263fc8e6d3a2a122f5f5e31b36afbeef369
+  namespace: pks-system
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        job: cert-generator
     spec:
       containers:
       - env:
@@ -702,9 +1494,61 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: oratos/sink-controller:v0.12
+        - name: CA_CERT_NAME
+          value: pks-ca
+        - name: CERTS_TO_GENERATE
+          value: validator;fluent-bit;event-controller
+        image: 120200614459.dkr.ecr.ap-northeast-1.amazonaws.com/oratos/cert-generator:dea87263fc8e6d3a2a122f5f5e31b36afbeef369
         imagePullPolicy: IfNotPresent
-        name: sink-controller
-      serviceAccountName: sink-controller
-
+        name: cert-generator
+      restartPolicy: Never
+      serviceAccountName: cert-generator
 ---
+# apiVersion: admissionregistration.k8s.io/v1beta1
+# kind: ValidatingWebhookConfiguration
+# metadata:
+#   labels:
+#     logs: "true"
+#     metrics: "true"
+#     safeToDelete: "true"
+#   name: validator.pksapi.io
+# webhooks:
+# - clientConfig:
+#     caBundle: ""
+#     service:
+#       name: validator
+#       namespace: pks-system
+#       path: /metricsink
+#   failurePolicy: Fail
+#   name: metric.validator.pksapi.io
+#   rules:
+#   - apiGroups:
+#     - pksapi.io
+#     apiVersions:
+#     - v1beta1
+#     operations:
+#     - CREATE
+#     - UPDATE
+#     resources:
+#     - clustermetricsinks
+#     - metricsinks
+# - clientConfig:
+#     caBundle: ""
+#     service:
+#       name: validator
+#       namespace: pks-system
+#       path: /logsink
+#   failurePolicy: Fail
+#   name: log.validator.pksapi.io
+#   rules:
+#   - apiGroups:
+#     - pksapi.io
+#     apiVersions:
+#     - v1beta1
+#     operations:
+#     - CREATE
+#     - UPDATE
+#     resources:
+#     - clusterlogsinks
+#     - logsinks
+

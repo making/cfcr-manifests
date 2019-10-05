@@ -2,9 +2,9 @@
   path: /releases/-
   value:
     name: zipkin
-    version: 0.7.0
-    url: https://github.com/making/zipkin-boshrelease/releases/download/0.7.0/zipkin-boshrelease-0.7.0.tgz
-    sha1: a9738320bcad38ba96f2ba70898d3aab0496e2fe
+    version: 0.7.1
+    url: https://github.com/making/zipkin-boshrelease/releases/download/0.7.1/zipkin-boshrelease-0.7.1.tgz
+    sha1: 984549b1368ef798ad789ab20abc05ea13375249
 
 - type: replace
   path: /releases/-

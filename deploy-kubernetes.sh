@@ -45,7 +45,7 @@ cat <<EOF
   path: /releases/name=${x}/stemcell?
   value:
     os: ubuntu-xenial
-    version: "456.27"
+    version: "456.30"
 EOF
 done
 ) \

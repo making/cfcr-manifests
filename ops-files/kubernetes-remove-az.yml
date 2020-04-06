@@ -1,0 +1,5 @@
+- type: remove
+  path: /instance_groups/name=worker/azs/2
+
+- type: remove
+  path: /instance_groups/name=worker/azs/1

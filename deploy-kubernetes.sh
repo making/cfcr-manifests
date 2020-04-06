@@ -24,10 +24,10 @@ bosh deploy -d cfcr kubo-deployment/manifests/cfcr.yml \
     -o ops-files/kubernetes-uaa-concourse-client.yml \
     -o ops-files/kubernetes-node-exporter.yml \
     -o ops-files/kubernetes-postgres-blog-db.yml \
+    -o ops-files/kubernetes-postgres-survey-db.yml \
     -o ops-files/kubernetes-service-catalog.yml \
-    -o ops-files/kubernetes-remove-z3.yml \
+    -o ops-files/kubernetes-remove-az.yml \
     -o ops-files/kubernetes-ulimits.yml \
-    -o ops-files/kubernetes-zipkin.yml \
     --var-file vault_config=vault/config.hcl \
     --var-file addons-spec=<(for f in `ls specs/*.yml`;do cat $f;echo;echo "---";done) \
     -v kubernetes_cluster_tag=${kubernetes_cluster_tag} \
@@ -62,7 +62,7 @@ EOF) \
     --var-file bosh_ca_cert=<(cat <<EOF
 ${BOSH_CA_CERT}
 EOF) \
-    --var-file oidc_ca=acm.ca \
+    --var-file oidc_ca=acm_ca.pem \
     -v ldap_olc_suffix="dc=ik,dc=am" \
     -v ldap_olc_root_dn="cn=admin,dc=ik,dc=am" \
     --var-file add_ldap_config_ldif=<(echo "") \

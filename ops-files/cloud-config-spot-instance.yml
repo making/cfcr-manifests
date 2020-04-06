@@ -3,7 +3,7 @@
   value:
     name: spot-instance-t2.micro
     cloud_properties:
-      spot_bid_price: 0.0047
+      spot_bid_price: 0.050
       spot_ondemand_fallback: true
 
 - type: replace
@@ -11,7 +11,7 @@
   value:
     name: spot-instance-t2.small
     cloud_properties:
-      spot_bid_price: 0.0092
+      spot_bid_price: 0.095
       spot_ondemand_fallback: true
 
 - type: replace
@@ -19,5 +19,5 @@
   value:
     name: spot-instance-t2.medium
     cloud_properties:
-      spot_bid_price: 0.0183
+      spot_bid_price: 0.19
       spot_ondemand_fallback: true

@@ -2,9 +2,9 @@
   path: /releases/-
   value:
     name: uaa
-    version: "70.0"
-    url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=70.0
-    sha1: c23b71fb2a3d01a1f494753b7f00ae40c549838f
+    version: "74.21.0"
+    url: "https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=74.21.0"
+    sha1: "6b7a2376e1dcf9d18331ae71dca7a4cc17d933bf"
 - type: replace
   path: /releases/-
   value:
@@ -70,7 +70,7 @@
               certificate: "((uaa_login_saml.certificate))"
               passphrase: ""
       uaa:
-        port: 8081
+        localhost_http_port: 8081
         ssl:
           port: 9443
         url: "https://((kubernetes_uaa_host)):9443"
@@ -113,7 +113,7 @@
       uaadb:
         port: 5432
         db_scheme: postgresql
-        tls_enabled: true
+        tls: disabled
         skip_ssl_validation: true
         databases:
         - tag: uaa
